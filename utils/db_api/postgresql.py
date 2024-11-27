@@ -83,3 +83,20 @@ class Database:
 
     async def drop_users(self):
         await self.execute("DROP TABLE Users", execute=True)
+
+    async def get_message(self, key: str, language: str = 'en') -> str:
+        """
+        Fetch a message from the bot_messages table by key and language.
+        Falls back to English if the specified language is not found.
+        """
+        query = """
+        SELECT message 
+        FROM bot_messages 
+        WHERE key = $1 AND language = $2
+        LIMIT 1;
+        """
+        message = await self.execute(query, key, language, fetchval=True)
+        if not message and language != 'en':
+            # Fallback to English if no message is found for the specified language
+            message = await self.execute(query, key, 'en', fetchval=True)
+        return message or "Message not found."

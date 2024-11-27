@@ -1,18 +1,26 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from loader import dp
+from loader import dp, db
 from keyboards.default.main_menu import main_menu
 from states.user_state import UserState
 
 @dp.message_handler(commands=["start"])
 async def handle_start(message: types.Message, state: FSMContext):
     await message.delete()
-    # Send the initial message with the keyboard
+
+    # Default user language (you can fetch this dynamically later)
+    user_language = 'en'
+
+    # Fetch the welcome message and replace \n with actual newlines
+    welcome_message = (await db.get_message(key="welcome_message", language=user_language)).replace("\\n", "\n")
+
+    # Send the welcome message with the keyboard
     sent_message = await message.answer(
-        "Welcome to the MoveMeGroup Bot! Choose an option:",
+        welcome_message,
         reply_markup=main_menu
     )
     print(sent_message.message_id)
+
     # Set the state and store the message_id
     await UserState.stored_message_id.set()
     await state.update_data(
@@ -23,7 +31,9 @@ async def handle_start(message: types.Message, state: FSMContext):
     # Debug: Log the chat_id and message_id
     print(f"Stored chat_id: {message.chat.id}, message_id: {sent_message.message_id}")
 
-@dp.message_handler(lambda message: message.text == "Start", state=UserState.stored_message_id)
+
+
+@dp.message_handler(lambda message: message.text == "🚀 Get Started", state=UserState.stored_message_id)
 async def handle_start_button(message: types.Message, state: FSMContext):
     await message.delete()
     # Retrieve stored message_id and chat_id
@@ -53,7 +63,7 @@ async def handle_start_button(message: types.Message, state: FSMContext):
     # Finish the state
     await state.finish()
 
-@dp.message_handler(lambda message: message.text == "Settings", state=UserState.stored_message_id)
+@dp.message_handler(lambda message: message.text == "🛠️ Adjust Settings", state=UserState.stored_message_id)
 async def handle_settings_button(message: types.Message, state: FSMContext):
     await message.delete()
     data = await state.get_data()
@@ -76,7 +86,7 @@ async def handle_settings_button(message: types.Message, state: FSMContext):
 
     await state.finish()
 
-@dp.message_handler(lambda message: message.text == "About", state=UserState.stored_message_id)
+@dp.message_handler(lambda message: message.text == "📝 About Us", state=UserState.stored_message_id)
 async def handle_about_button(message: types.Message, state: FSMContext):
     await message.delete()
     data = await state.get_data()
