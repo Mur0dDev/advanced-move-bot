@@ -4,12 +4,12 @@ from loader import dp, db
 import middlewares, filters, handlers
 from utils.notify_admins import on_startup_notify
 from utils.set_bot_commands import set_default_commands
+from utils.db_api.setup_database import setup_database
 
 
 async def on_startup(dispatcher):
     await db.create()
-    # await db.drop_users()
-    await db.create_table_users()
+    await setup_database()
 
     await set_default_commands(dispatcher)
 
