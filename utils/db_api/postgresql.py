@@ -55,6 +55,21 @@ class Database:
         """
         await self.execute(sql, execute=True)
 
+    async def create_table_unregistered_users(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS unregistered_users (
+            id SERIAL PRIMARY KEY,
+            telegram_id BIGINT UNIQUE NOT NULL,
+            first_name VARCHAR(255),
+            last_name VARCHAR(255),
+            username VARCHAR(255),
+            language VARCHAR(10) DEFAULT 'en', -- Default language
+            role VARCHAR(50) DEFAULT 'viewer', -- Default role
+            date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """
+        await self.execute(sql, execute=True)
+
     async def create_table_bot_messages(self):
         sql = """
         CREATE TABLE IF NOT EXISTS bot_messages (
@@ -130,3 +145,24 @@ class Database:
     def format_args(sql, parameters: dict):
         sql += " AND ".join([f"{item} = ${num}" for num, item in enumerate(parameters.keys(), start=1)])
         return sql, tuple(parameters.values())
+
+    # Add unregistered user
+    async def add_unregistered_user(self, telegram_id: int, first_name: str, last_name: str = None,
+                                    username: str = None):
+        sql = """
+        INSERT INTO unregistered_users (telegram_id, first_name, last_name, username)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (telegram_id) DO NOTHING;
+        """
+        await self.execute(sql, telegram_id, first_name, last_name, username, execute=True)
+
+    # Select unregistered user
+    async def select_unregistered_user(self, telegram_id: int):
+        sql = "SELECT * FROM unregistered_users WHERE telegram_id = $1;"
+        return await self.execute(sql, telegram_id, fetchrow=True)
+
+    # Remove unregistered user
+    async def remove_unregistered_user(self, telegram_id: int):
+        sql = "DELETE FROM unregistered_users WHERE telegram_id = $1;"
+        await self.execute(sql, telegram_id, execute=True)
+

@@ -20,6 +20,9 @@ async def setup_database():
         await db.create_table_bot_messages()
         print("Table 'bot_messages' created successfully!")
 
+        await db.create_table_unregistered_users()
+        print("Table 'unregistered_users' created successfully!")
+
         # Insert initial bot messages
         bot_messages = [
             (
@@ -45,8 +48,8 @@ async def setup_database():
         # Insert a sample user
         await db.add_user(
             telegram_id=7262828142,
-            full_name="John Admin",
-            username="johnadmin",
+            full_name="Milton Sullivan",
+            username="miltonmoveme",
             language="en",
             role="admin",
             special_role=None
