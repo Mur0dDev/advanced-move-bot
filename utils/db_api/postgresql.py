@@ -82,6 +82,11 @@ class Database:
         """
         await self.execute(sql, execute=True)
 
+    @staticmethod
+    def format_args(sql, parameters: dict):
+        sql += " AND ".join([f"{item} = ${num}" for num, item in enumerate(parameters.keys(), start=1)])
+        return sql, tuple(parameters.values())
+
     # User-specific methods
     async def add_user(self, telegram_id: int, full_name: str, username: str, language: str = "en",
                        role: str = "viewer", special_role: str = None):
@@ -140,11 +145,6 @@ class Database:
         """
         for message in messages:
             await self.execute(sql, *message, execute=True)
-
-    @staticmethod
-    def format_args(sql, parameters: dict):
-        sql += " AND ".join([f"{item} = ${num}" for num, item in enumerate(parameters.keys(), start=1)])
-        return sql, tuple(parameters.values())
 
     # Add unregistered user
     async def add_unregistered_user(self, telegram_id: int, first_name: str, last_name: str = None,
